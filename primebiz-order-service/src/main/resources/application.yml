@@ -16,6 +16,15 @@ spring:
     config:
       uri: http://localhost:8888
 
+spring:
+  cloud:
+    stream:
+      bindings:
+        paymentCompleted-in-0:
+          destination: payment-events
+          group: order-service-group
+
+
 eureka:
   client:
     serviceUrl:

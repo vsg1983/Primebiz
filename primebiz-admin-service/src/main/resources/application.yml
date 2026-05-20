@@ -1,11 +1,11 @@
 server:
-  port: 8086
+  port: 8089
 
 spring:
   application:
-    name: primebiz-payment-service
+    name: primebiz-admin-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/primebiz_payment
+    url: jdbc:postgresql://localhost:5432/primebiz_admin
     username: postgres
     password: password
   jpa:
@@ -15,14 +15,6 @@ spring:
   cloud:
     config:
       uri: http://localhost:8888
-
-spring:
-  cloud:
-    stream:
-      bindings:
-        paymentCompleted-out-0:
-          destination: payment-events
-
 
 eureka:
   client:

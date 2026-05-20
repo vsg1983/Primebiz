@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final OrderClient orderClient;
+    private final PaymentEventProducer eventProducer;
 
     @Transactional
     public PaymentResponseDTO initiatePayment(PaymentRequestDTO request) {
@@ -57,9 +57,13 @@ public class PaymentService {
         
         paymentRepository.save(payment);
 
-        // Notify Order Service
-        String orderStatus = (status == PaymentStatus.SUCCESS) ? "PAID" : "CANCELLED";
-        orderClient.updateOrderStatus(payment.getOrderId(), Map.of("status", orderStatus));
+        // Notify Order Service via Event
+        eventProducer.sendPaymentEvent(PaymentCompletedEvent.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .status(status.name())
+                .amount(payment.getAmount())
+                .build());
     }
 
     public Payment getPayment(Long paymentId) {

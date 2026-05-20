@@ -1,11 +1,11 @@
 server:
-  port: 8086
+  port: 8088
 
 spring:
   application:
-    name: primebiz-payment-service
+    name: primebiz-notification-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/primebiz_payment
+    url: jdbc:postgresql://localhost:5432/primebiz_notification
     username: postgres
     password: password
   jpa:
@@ -20,8 +20,9 @@ spring:
   cloud:
     stream:
       bindings:
-        paymentCompleted-out-0:
+        paymentCompleted-in-0:
           destination: payment-events
+          group: notification-service-group
 
 
 eureka:

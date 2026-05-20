@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Primebiz</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; min-height: 100vh; }
+        .admin-sidebar {
+            width: 250px;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .admin-sidebar h2 { text-align: center; margin-bottom: 2rem; }
+        .admin-sidebar a {
+            color: var(--white);
+            text-decoration: none;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+        .admin-sidebar a:hover, .admin-sidebar a.active {
+            background: var(--secondary-color);
+        }
+        .admin-main {
+            flex: 1;
+            padding: 2rem;
+            background: var(--bg-color);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { margin: 0; color: var(--gray); font-size: 1rem; }
+        .stat-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); margin: 0.5rem 0; }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .admin-table th { background: var(--primary-color); color: var(--white); }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-paid { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="admin-sidebar">
+        <h2>Primebiz Admin</h2>
+        <a id="nav-dash" class="active" onclick="showView('dash')">Dashboard</a>
+        <a id="nav-orders" onclick="showView('orders')">Orders</a>
+        <a id="nav-inv" onclick="showView('inventory')">Inventory</a>
+        <a href="index.html" style="margin-top: auto; background: #c0392b;">Logout</a>
+    </div>
+
+    <div class="admin-main">
+        <!-- Dashboard View -->
+        <div id="view-dash" class="admin-view">
+            <h1>Business Overview</h1>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <div class="value" id="stat-revenue">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="value" id="stat-orders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <div class="value" id="stat-users">0</div>
+                </div>
+            </div>
+            
+            <h2>Low Stock Alerts</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="low-stock-list"></tbody>
+            </table>
+        </div>
+
+        <!-- Orders View -->
+        <div id="view-orders" class="admin-view" style="display:none">
+            <h1>Order Management</h1>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-list"></tbody>
+            </table>
+        </div>
+
+        <!-- Inventory View -->
+        <div id="view-inventory" class="admin-view" style="display:none">
+            <h1>Inventory Management</h1>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function showView(view) {
+            document.querySelectorAll('.admin-view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.admin-sidebar a').forEach(a => a.classList.remove('active'));
+            
+            document.getElementById('view-' + view).style.display = 'block';
+            document.getElementById('nav-' + view).classList.add('active');
+
+            if (view === 'dash') loadDashboard();
+            if (view === 'orders') loadOrders();
+            if (view === 'inventory') loadInventory();
+        }
+
+        async function loadDashboard() {
+            try {
+                const stats = await ApiClient.getAdminStats();
+                document.getElementById('stat-revenue').textContent = `₹${stats.totalRevenue}`;
+                document.getElementById('stat-orders').textContent = stats.totalOrders;
+                document.getElementById('stat-users').textContent = stats.totalUsers;
+
+                const stockList = document.getElementById('low-stock-list');
+                stockList.innerHTML = stats.lowStockAlerts.map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.stock}</td>
+                        <td><button class="btn btn-primary" onclick="restock(${p.id})">Restock</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Stats load failed', e);
+            }
+        }
+
+        async function loadOrders() {
+            // Mocked list for demo
+            const orders = [
+                {id: 101, customer: 'Arun', amount: 1200, status: 'PAID'},
+                {id: 102, customer: 'Priya', amount: 800, status: 'PENDING'},
+            ];
+            const list = document.getElementById('orders-list');
+            list.innerHTML = orders.map(o => `
+                <tr>
+                    <td>#${o.id}</td>
+                    <td>${o.customer}</td>
+                    <td>₹${o.amount}</td>
+                    <td><span class="status-badge status-${o.status.toLowerCase()}">${o.status}</span></td>
+                    <td><button class="btn btn-secondary" onclick="updateStatus(${o.id})">Update</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadInventory() {
+            const products = await ApiClient.getProducts();
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = products.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>PB-${p.id}</td>
+                    <td>${p.stock || 10}</td>
+                    <td><button class="btn btn-secondary" onclick="updateStock(${p.id})">Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function restock(id) { alert('Restock request sent for product ' + id); }
+        function updateStatus(id) { alert('Updating status for order ' + id); }
+        function updateStock(id) { alert('Updating stock for product ' + id); }
+
+        window.onload = () => showView('dash');
+    </script>
+</body>
+</html>
