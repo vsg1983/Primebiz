@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: primebiz-api-gateway
+  cloud:
+    config:
+      uri: http://localhost:8888
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+# Global CORS configuration
+spring.cloud.gateway.globalcors:
+  cors-configurations:
+    '[/**]':
+      allowedOrigins: "*"
+      allowedMethods: "*"
+      allowedHeaders: "*"
