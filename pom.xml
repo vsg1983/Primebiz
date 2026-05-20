@@ -19,6 +19,7 @@
     </properties>
 
     <modules>
+        <module>primebiz-inventory-service</module>
         <module>primebiz-product-service</module>
         <module>primebiz-auth-service</module>
         <module>primebiz-api-gateway</module>
