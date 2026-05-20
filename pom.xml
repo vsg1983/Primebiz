@@ -19,6 +19,9 @@
     </properties>
 
     <modules>
+        <module>primebiz-payment-service</module>
+        <module>primebiz-order-service</module>
+        <module>primebiz-user-service</module>
         <module>primebiz-inventory-service</module>
         <module>primebiz-product-service</module>
         <module>primebiz-auth-service</module>
